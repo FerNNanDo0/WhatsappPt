@@ -1,12 +1,16 @@
 package com.example.whatsapp.activitys;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,13 +27,20 @@ import com.example.whatsapp.config.UserFirebase;
 import com.example.whatsapp.helper.Base64decod;
 import com.example.whatsapp.model.Messages;
 import com.example.whatsapp.model.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -41,17 +52,21 @@ public class ChatActivity extends AppCompatActivity {
     private EditText EditTextMessages;
     private ImageButton btnCamera;
 
+    private static final int REQUEST_CODE_CAMERA = 100;
+
     RecyclerView recyclerView_Msgs;
     AdapterMenssagens adapterMensagens;
     List<Messages> listMsgs = new ArrayList<>();
 
     User userDestinatario;
 
+
     String idUserRemetente;
     String idDestinatario;
 
-    DatabaseReference database;
+    DatabaseReference databaseRef;
     DatabaseReference mensagensRef;
+    StorageReference storageRef;
 
     ChildEventListener childEventListenerMsg;
 
@@ -96,8 +111,9 @@ public class ChatActivity extends AppCompatActivity {
         idUserRemetente = UserFirebase.getIdUser();
         idDestinatario = Base64decod.encodBase64( userDestinatario.getEmail() );
 
-        // referencia do dataBase
-        database = Firebase.getDatabaseRef();
+        // referencia do dataBase e storage
+        databaseRef = Firebase.getDatabaseRef();
+        storageRef = Firebase.getStorageRef();
 
         // configs adapter
         adapterMensagens = new AdapterMenssagens( listMsgs, this );
@@ -107,7 +123,56 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView_Msgs.setLayoutManager( layoutManager );
         recyclerView_Msgs.setHasFixedSize( true );
         recyclerView_Msgs.setAdapter(adapterMensagens);
+
     }
+
+    public void btnCameraChat(View view){
+
+        Intent cameraOpen = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraOpen, REQUEST_CODE_CAMERA);
+
+    }
+
+    // salvar imgs do chat no storage se a imagem != null
+    public void savarImagesStorage(Bitmap image){
+
+        // Recuperar dados de imagem para o firebase
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+        byte[] dadosImg = baos.toByteArray();
+
+        String idImage = UUID.randomUUID().toString();
+
+        // salvar no storage Firebase
+        final StorageReference imageRef = storageRef.child("images")
+                .child("fotos")
+                .child( idUserRemetente )
+                .child( idImage + ".jpeg");
+
+        // upLoad da foto para storage
+        UploadTask uploadTask = imageRef.putBytes(dadosImg);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "Erro ao fazer download da imagem",
+                        Toast.LENGTH_SHORT).show();
+            }
+        })
+        .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                Toast.makeText(getApplicationContext(), "Sucesso ao fazer download da imagem ",
+                        Toast.LENGTH_LONG).show();
+
+
+            }
+        });
+
+
+    }
+
 
 
     // method de enviar msgs
@@ -137,10 +202,9 @@ public class ChatActivity extends AppCompatActivity {
     private void salvarMsgDatabase(String idUserRemetente, String idDestinatario, Messages msg){
 
         // refencia de mensagens
-        DatabaseReference mensagensRef = database.child("mensagens");
+        DatabaseReference mensagensRef = databaseRef.child("mensagens");
 
-        mensagensRef
-                .child( idUserRemetente )
+        mensagensRef.child( idUserRemetente )
                 .child( idDestinatario )
                 .push()
                 .setValue( msg );
@@ -149,7 +213,7 @@ public class ChatActivity extends AppCompatActivity {
     @SuppressLint("NotifyDataSetChanged")
     private void recuperarMensagens(){
 
-        mensagensRef = database.child("mensagens")
+        mensagensRef = databaseRef.child("mensagens")
                 .child( idUserRemetente )
                 .child( idDestinatario  );
 
@@ -206,4 +270,33 @@ public class ChatActivity extends AppCompatActivity {
 //        }
         return super.onOptionsItemSelected(item);
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            Bitmap image = null;
+
+            try {
+                switch (requestCode) {
+                    case REQUEST_CODE_CAMERA:
+                        assert data != null;
+
+                        image = (Bitmap) data.getExtras().get("data");
+                        break;
+                }
+
+                if (image != null) {
+                    savarImagesStorage(image);
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
+    }
+
 }
