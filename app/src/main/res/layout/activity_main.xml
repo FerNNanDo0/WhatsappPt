@@ -8,6 +8,8 @@
     tools:context=".activitys.MainActivity">
 
 
+    <include layout="@layout/toolbar_main" />
+
     <com.ogaclejapan.smarttablayout.SmartTabLayout
         android:id="@+id/viewpagertab"
         android:layout_width="match_parent"

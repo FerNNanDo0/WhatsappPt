@@ -2,6 +2,7 @@ package com.example.whatsapp.activitys;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
@@ -13,7 +14,9 @@ import com.example.whatsapp.R;
 import com.example.whatsapp.config.Firebase;
 import com.example.whatsapp.fragments.ContatosFragment;
 import com.example.whatsapp.fragments.ConversasFragment;
+import com.example.whatsapp.model.Conversas;
 import com.google.firebase.auth.FirebaseAuth;
+import com.miguelcatalan.materialsearchview.MaterialSearchView;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
@@ -23,16 +26,24 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth Auth = Firebase.getAuthRef();
+    private MaterialSearchView searchView;
+    private FragmentPagerItemAdapter adapter;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Objects.requireNonNull(getSupportActionBar()).setElevation(0);
+        toolbar =  findViewById(R.id.toolbar_main);
+        setSupportActionBar(toolbar);
+
+        if( getSupportActionBar() != null){
+            getSupportActionBar().setElevation(0);
+        }
 
         //config abas
-        FragmentPagerItemAdapter adapter = new FragmentPagerItemAdapter(
+        adapter = new FragmentPagerItemAdapter(
                 getSupportFragmentManager(),
                 FragmentPagerItems.with(this)
                 .add( "Conversas", ConversasFragment.class )
@@ -46,6 +57,42 @@ public class MainActivity extends AppCompatActivity {
         SmartTabLayout viewPagerTab = findViewById(R.id.viewpagertab);
         viewPagerTab.setViewPager( viewPager );
 
+        searchView = findViewById(R.id.search_viewM);
+
+        searchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
+            @Override
+            public void onSearchViewShown() {
+
+            }
+
+            @Override
+            public void onSearchViewClosed() {
+                ConversasFragment fragmentConv = (ConversasFragment) adapter.getPage(0);
+                // recarregar conversas
+                fragmentConv.recarregarConversasAdapter();
+            }
+        });
+
+                // listener caixa de texto
+        searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                if ( newText != null & !newText.isEmpty() ){
+                    ConversasFragment fragmentConv = (ConversasFragment) adapter.getPage(0);
+                    fragmentConv.pesquisarConversas( newText );
+                }
+
+
+                return true;
+            }
+        });
+
     }
 
 
@@ -53,12 +100,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // config btn de pesquisa searshView
+        MenuItem item = menu.findItem(R.id.app_bar_search);
+        searchView.setMenuItem(item);
+
         return super.onCreateOptionsMenu(menu);
     }
     // clicks de menu
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch ( item.getItemId()){
+
+            //case R.id.app_bar_search:
 
             case R.id.sair_doApp:
                 desLogarUser();

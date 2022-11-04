@@ -18,12 +18,15 @@ import android.widget.AdapterView;
 
 import com.example.whatsapp.R;
 import com.example.whatsapp.activitys.ChatActivity;
+import com.example.whatsapp.adapter.Adapter;
 import com.example.whatsapp.adapter.AdapterContatos;
 import com.example.whatsapp.config.Firebase;
 import com.example.whatsapp.config.UserFirebase;
 import com.example.whatsapp.helper.RecyclerItemClickListener;
+import com.example.whatsapp.model.Conversas;
 import com.example.whatsapp.model.User;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -37,12 +40,15 @@ public class ContatosFragment extends Fragment {
 
     private View view;
     private RecyclerView recyclerContatos;
+
     private List<User> listaContatos = new ArrayList<>();
+
     private Context context;
-    private AdapterContatos adapterContatos;
+    private Adapter adapterContatos;
 
     private DatabaseReference databaseRef;
     private ValueEventListener valueEventListener;
+//    private ChildEventListener childEventListener;
     private FirebaseUser userAtual;
     private String emailUserAtual;
 
@@ -67,6 +73,7 @@ public class ContatosFragment extends Fragment {
         userAtual = UserFirebase.getUser();
         emailUserAtual = userAtual.getEmail();
 
+        // referencia do database
         databaseRef = Firebase.getDatabaseRef();
 
         // config recycler
@@ -75,8 +82,8 @@ public class ContatosFragment extends Fragment {
         recyclerContatos.setHasFixedSize(true);
 
         // config adapterContatos
-        adapterContatos = new AdapterContatos( listaContatos, context );
-        recyclerContatos.setAdapter(adapterContatos);
+        adapterContatos = new Adapter( listaContatos, null, context );
+        recyclerContatos.setAdapter( adapterContatos );
 
         // config event de click no recyclerView
         recyclerContatos.addOnItemTouchListener(
@@ -107,6 +114,7 @@ public class ContatosFragment extends Fragment {
                 )
         );
 
+        recuperarUsers();
 
         return view;
     }
@@ -114,7 +122,6 @@ public class ContatosFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        recuperarUsers();
     }
 
     @Override
@@ -130,25 +137,20 @@ public class ContatosFragment extends Fragment {
 
     public void recuperarUsers(){
 
-        valueEventListener = databaseRef.child("usuarios").addValueEventListener(new ValueEventListener() {
+        valueEventListener = databaseRef.child("usuarios")
+        .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                 for (DataSnapshot userFirebase : snapshot.getChildren() ){
-
                     User user = userFirebase.getValue( User.class );
-
                     if ( !emailUserAtual.equals( user.getEmail() ) ){
                         listaContatos.add( user );
                     }
                 }
-
                 adapterContatos.notifyDataSetChanged();
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
 

@@ -1,10 +1,18 @@
 package com.example.whatsapp.model;
 
+import com.example.whatsapp.config.Firebase;
+import com.google.firebase.database.DatabaseReference;
+
 public class Messages {
+
+    DatabaseReference mensagensRef;
+    DatabaseReference databaseRef;
 
     private String idUsuarioAtual;
     private String message;
     private String foto;
+
+    public Messages(){}
 
     public String getIdUsuarioAtual() {
         return idUsuarioAtual;
@@ -28,5 +36,25 @@ public class Messages {
 
     public void setFoto(String foto) {
         this.foto = foto;
+    }
+
+
+
+    // salvar msgs
+    public void salvarMsgDatabase(String idUserRemetente, String idDestinatario, Messages msg){
+
+        // refencia de mensagens
+        databaseRef = Firebase.getDatabaseRef();
+        mensagensRef = databaseRef.child("mensagens");
+
+        mensagensRef.child( idUserRemetente )
+                .child( idDestinatario )
+                .push()
+                .setValue( msg );
+
+        mensagensRef.child( idDestinatario )
+                .child( idUserRemetente )
+                .push()
+                .setValue( msg );
     }
 }

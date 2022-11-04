@@ -3,6 +3,7 @@ package com.example.whatsapp.activitys;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.MenuItem;
@@ -25,6 +26,7 @@ import com.example.whatsapp.adapter.AdapterMenssagens;
 import com.example.whatsapp.config.Firebase;
 import com.example.whatsapp.config.UserFirebase;
 import com.example.whatsapp.helper.Base64decod;
+import com.example.whatsapp.model.Conversas;
 import com.example.whatsapp.model.Messages;
 import com.example.whatsapp.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -64,6 +66,7 @@ public class ChatActivity extends AppCompatActivity {
     String idUserRemetente;
     String idDestinatario;
 
+    DatabaseReference conversasRef;
     DatabaseReference databaseRef;
     DatabaseReference mensagensRef;
     StorageReference storageRef;
@@ -144,9 +147,10 @@ public class ChatActivity extends AppCompatActivity {
         String idImage = UUID.randomUUID().toString();
 
         // salvar no storage Firebase
-        final StorageReference imageRef = storageRef.child("images")
-                .child("fotos")
+        final StorageReference imageRef = storageRef.child("imagens")
+                .child("fotosChat")
                 .child( idUserRemetente )
+                .child( idDestinatario )
                 .child( idImage + ".jpeg");
 
         // upLoad da foto para storage
@@ -163,13 +167,48 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
-                Toast.makeText(getApplicationContext(), "Sucesso ao fazer download da imagem ",
-                        Toast.LENGTH_LONG).show();
+                imageRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Uri> task) {
+
+                        String downloadUrlImg = task.getResult().toString();
+
+                        Messages message = new Messages();
+                        message.setIdUsuarioAtual( idUserRemetente );
+                        message.setMessage( "imagem.jpeg" );
+                        message.setFoto( downloadUrlImg );
+
+                        // salvar para remetente
+                        message.salvarMsgDatabase( idUserRemetente, idDestinatario, message );
+
+                        Toast.makeText(getApplicationContext(), "Sucesso ao enviar imagem ",
+                                Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
 
 
             }
         });
 
+
+    }
+
+    public void salvarConversas(Messages msg){
+
+        // salvar conversas
+        Conversas conversas = new Conversas();
+        conversas.setIdRemetente( idUserRemetente );
+        conversas.setIdDestinatario( idDestinatario );
+        conversas.setUltimaMenssagen( msg.getMessage() );
+        conversas.setUserExibicao( userDestinatario );
+
+        conversas.salvar();
 
     }
 
@@ -187,32 +226,26 @@ public class ChatActivity extends AppCompatActivity {
             msg.setIdUsuarioAtual( idUserRemetente );
             msg.setMessage( txt_msg );
 
-            // salvar MSGs para o remetente
-            salvarMsgDatabase(idUserRemetente, idDestinatario, msg );
+            // salvar MSGs para o remetente e destinatario
+            msg.salvarMsgDatabase(idUserRemetente, idDestinatario, msg );
 
-            // salvar para o destinatario
-            salvarMsgDatabase(idDestinatario, idUserRemetente,msg );
+            // salvar conversas
+            salvarConversas( msg );
 
             EditTextMessages.setText("");
+        }else{
+            Toast.makeText(getApplicationContext(), "Escreva uma menssagem!",
+                    Toast.LENGTH_LONG).show();
         }
 
 
     }
 
-    private void salvarMsgDatabase(String idUserRemetente, String idDestinatario, Messages msg){
-
-        // refencia de mensagens
-        DatabaseReference mensagensRef = databaseRef.child("mensagens");
-
-        mensagensRef.child( idUserRemetente )
-                .child( idDestinatario )
-                .push()
-                .setValue( msg );
-    }
 
     @SuppressLint("NotifyDataSetChanged")
     private void recuperarMensagens(){
 
+        // referencia menssagens
         mensagensRef = databaseRef.child("mensagens")
                 .child( idUserRemetente )
                 .child( idDestinatario  );

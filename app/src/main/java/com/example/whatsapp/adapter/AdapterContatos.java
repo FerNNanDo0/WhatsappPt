@@ -20,13 +20,13 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class AdapterContatos extends RecyclerView.Adapter<AdapterContatos.MyViewHolder> {
 
-    private List<User> listUsersContatosa;
+    private List<User> listUsersContatos;
     private Context context;
     private View view;
 
     public AdapterContatos(List<User> contatos, Context c){
         this.context = c;
-        this.listUsersContatosa = contatos;
+        this.listUsersContatos = contatos;
     }
 
     @NonNull
@@ -34,14 +34,14 @@ public class AdapterContatos extends RecyclerView.Adapter<AdapterContatos.MyView
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
         view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.adapter_contatos, parent , false);
+                .inflate(R.layout.adapter_layout, parent , false);
 
         return new MyViewHolder( view );
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        User user = listUsersContatosa.get( position );
+        User user = listUsersContatos.get( position );
 
         holder.nome.setText( user.getNome() );
         holder.email.setText( user.getEmail() );
@@ -55,7 +55,7 @@ public class AdapterContatos extends RecyclerView.Adapter<AdapterContatos.MyView
 
     @Override
     public int getItemCount() {
-        return listUsersContatosa.size();
+        return listUsersContatos.size();
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder{
@@ -67,9 +67,9 @@ public class AdapterContatos extends RecyclerView.Adapter<AdapterContatos.MyView
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            nome = itemView.findViewById(R.id.textNome);
-            email = itemView.findViewById(R.id.textEmail);
-            imgPerfil = itemView.findViewById(R.id.imgPerfilContatos);
+            nome = itemView.findViewById(R.id.textPrimary);
+            email = itemView.findViewById(R.id.textSecond);
+            imgPerfil = itemView.findViewById(R.id.img_layout);
 
 
         }

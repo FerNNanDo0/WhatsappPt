@@ -60,6 +60,9 @@ dependencies {
     // circleImageView
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
+    // material SearshView
+    implementation 'com.miguelcatalan:materialsearchview:1.4.0'
+
     //Glide load imgs
     implementation 'com.github.bumptech.glide:glide:4.14.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.14.1'

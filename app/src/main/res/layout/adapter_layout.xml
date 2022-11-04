@@ -16,7 +16,7 @@
         android:orientation="horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/imgPerfilContatos"
+            android:id="@+id/img_layout"
             android:layout_width="65dp"
             android:layout_height="65dp"
             android:src="@drawable/padrao"
@@ -30,7 +30,7 @@
             android:padding="5dp">
 
             <TextView
-                android:id="@+id/textNome"
+                android:id="@+id/textPrimary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
@@ -41,12 +41,12 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/textEmail"
+                android:id="@+id/textSecond"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="2dp"
                 android:text="email@gmail.com"
-                android:textColor="#1E88E5"
+                android:textColor="@color/colo_email_contato"
                 android:textSize="15sp"
                 android:textStyle="italic" />
 

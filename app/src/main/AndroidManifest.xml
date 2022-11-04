@@ -27,18 +27,22 @@
             android:label="@string/title_activity_chat"
             android:parentActivityName=".activitys.MainActivity"
             android:theme="@style/Theme.Whatsapp.NoActionBar" />
+
         <activity
             android:name=".activitys.ConfigUserActivity"
             android:exported="true"
             android:parentActivityName=".activitys.MainActivity"
-            android:theme="@style/Theme.activityMain" />
+            android:theme="@style/Theme.activityMain.NoActionBar"/>
+
         <activity
             android:name=".activitys.CadastroActivity"
             android:exported="true" />
+
         <activity
             android:name=".activitys.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.activityMain" />
+            android:theme="@style/Theme.activityMain.NoActionBar" />
+
         <activity
             android:name=".activitys.LoguinActivity"
             android:exported="true">

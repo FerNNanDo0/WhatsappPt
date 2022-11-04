@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -57,6 +58,7 @@ public class ConfigUserActivity extends AppCompatActivity {
     private String idUser;
     private FirebaseUser user;
     private User userLogado;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +74,15 @@ public class ConfigUserActivity extends AppCompatActivity {
         // validate permissions
         Permissions.validatePermissions(permissions, this, 1);
 
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        // config toolbar
+        toolbar =  findViewById(R.id.toolbar_main);
+        setSupportActionBar(toolbar);
+
+        if( getSupportActionBar() != null){
+            getSupportActionBar().setElevation(0);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
 
         idUser = UserFirebase.getIdUser();
         user = UserFirebase.getUser();
