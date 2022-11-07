@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -46,6 +47,13 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
             if ( user.getFoto() != null ){
                 Uri uri = Uri.parse( user.getFoto() );
                 Glide.with( context ).load( uri ).into( holder.img );
+            }
+
+            // se email == vazio define item de NOVO GRUPO
+            if( user.getEmail().isEmpty() ){
+                holder.secondaryText.setVisibility(View.GONE);
+                holder.divisorLayout.setVisibility(View.GONE);
+                holder.img.setImageResource(R.drawable.icone_grupo);
             }
 
         }
@@ -99,6 +107,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
         private TextView primaryText;
         private TextView secondaryText;
         private CircleImageView img;
+        LinearLayout divisorLayout;
 
         public MyViewHolder(View itemView){
             super(itemView);
@@ -106,6 +115,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
             primaryText = itemView.findViewById(R.id.textPrimary);
             secondaryText = itemView.findViewById(R.id.textSecond);
             img = itemView.findViewById(R.id.img_layout);
+
+            divisorLayout = itemView.findViewById(R.id.divisoLayout);
 
 
         }

@@ -46,10 +46,12 @@ public class AdapterContatos extends RecyclerView.Adapter<AdapterContatos.MyView
         holder.nome.setText( user.getNome() );
         holder.email.setText( user.getEmail() );
 
+        // se houver uma foto define para o usuario
         if ( user.getFoto() != null ){
             Uri uri = Uri.parse( user.getFoto() );
             Glide.with( context ).load( uri ).into( holder.imgPerfil );
         }
+
 
     }
 

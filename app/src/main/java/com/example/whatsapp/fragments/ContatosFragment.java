@@ -70,11 +70,10 @@ public class ContatosFragment extends Fragment {
 
         recyclerContatos = view.findViewById(R.id.recyclerContatos);
 
+        // referencia do database e do usuario
+        databaseRef = Firebase.getDatabaseRef();
         userAtual = UserFirebase.getUser();
         emailUserAtual = userAtual.getEmail();
-
-        // referencia do database
-        databaseRef = Firebase.getDatabaseRef();
 
         // config recycler
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireActivity());
@@ -94,11 +93,15 @@ public class ContatosFragment extends Fragment {
                             @Override
                             public void onItemClick(View view, int position) {
 
-                                User userAtual = listaContatos.get(position);
+                                User userA = listaContatos.get(position);
 
-                                Intent i = new Intent(requireContext(), ChatActivity.class);
-                                i.putExtra("userAtual", userAtual);
-                                startActivity( i );
+                                if ( userA.getEmail().isEmpty() ){
+
+                                }else{
+                                    Intent i = new Intent(requireContext(), ChatActivity.class);
+                                    i.putExtra("userA", userA);
+                                    startActivity( i );
+                                }
                             }
 
                             @Override
@@ -113,6 +116,12 @@ public class ContatosFragment extends Fragment {
                         }
                 )
         );
+
+
+        User user = new User();
+        user.setNome("Novo Grupo");
+        user.setEmail("");
+        listaContatos.add(user);
 
         recuperarUsers();
 
@@ -142,6 +151,7 @@ public class ContatosFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot userFirebase : snapshot.getChildren() ){
+
                     User user = userFirebase.getValue( User.class );
                     if ( !emailUserAtual.equals( user.getEmail() ) ){
                         listaContatos.add( user );

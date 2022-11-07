@@ -96,7 +96,7 @@ public class ChatActivity extends AppCompatActivity {
         // config dados do usuario
         Bundle extra = getIntent().getExtras();
         if ( extra != null ){
-            userDestinatario = (User) extra.getSerializable("userAtual");
+            userDestinatario = (User) extra.getSerializable("userA");
 
             String urlFotoUser = userDestinatario.getFoto();
             String nomeUser = userDestinatario.getNome();

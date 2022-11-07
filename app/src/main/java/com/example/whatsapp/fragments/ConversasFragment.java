@@ -101,7 +101,7 @@ public class ConversasFragment extends Fragment {
                                 Conversas conversaSelecionada = listConversas.get(position);
 
                                 Intent i = new Intent(requireContext(), ChatActivity.class);
-                                i.putExtra("userAtual", conversaSelecionada.getUserExibicao());
+                                i.putExtra("userA", conversaSelecionada.getUserExibicao());
                                 startActivity( i );
                             }
 
