@@ -1,5 +1,8 @@
 package com.example.whatsapp.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.example.whatsapp.config.Firebase;
 import com.example.whatsapp.config.UserFirebase;
 import com.google.firebase.database.DatabaseReference;
@@ -11,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class User implements Serializable {
+public class User implements Parcelable {
 
     private String nome;
     private String email;
@@ -24,6 +27,26 @@ public class User implements Serializable {
     public User(){
 
     }
+
+    protected User(Parcel in) {
+        nome = in.readString();
+        email = in.readString();
+        senha = in.readString();
+        id = in.readString();
+        foto = in.readString();
+    }
+
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 
     public void salvar(){
         databaseReference = Firebase.getDatabaseRef();
@@ -98,5 +121,21 @@ public class User implements Serializable {
 
     public void setSenha(String senha) {
         this.senha = senha;
+    }
+
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(nome);
+        parcel.writeString(email);
+        parcel.writeString(senha);
+        parcel.writeString(id);
+        parcel.writeString(foto);
     }
 }

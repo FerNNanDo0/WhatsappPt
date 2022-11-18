@@ -3,6 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp-v05/app/src/main/res/layout/activity_cadastro_grupo.xml" value="0.22083333333333333" />
+        <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp-v05/app/src/main/res/layout/activity_grupo.xml" value="0.19444444444444445" />
+        <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp-v05/app/src/main/res/layout/adapter_grupo_selecionado.xml" value="0.22083333333333333" />
+        <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp-v05/app/src/main/res/layout/adapter_msgs_destinatario.xml" value="0.22083333333333333" />
+        <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp-v05/app/src/main/res/layout/adapter_msgs_remetente.xml" value="0.22083333333333333" />
         <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.12129629629629629" />
         <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp/app/src/main/res/drawable/bg_balao_msg.xml" value="0.23333333333333334" />
         <entry key="..\:/Users/Fernando.DESKTOP-G4LLCM7/AndroidStudioProjects/Whatsapp/app/src/main/res/drawable/ic_baseline_home_indicator_24.xml" value="0.22870370370370371" />

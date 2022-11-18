@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 
 import com.example.whatsapp.R;
 import com.example.whatsapp.activitys.ChatActivity;
+import com.example.whatsapp.activitys.GrupoActivity;
 import com.example.whatsapp.adapter.Adapter;
 import com.example.whatsapp.adapter.AdapterContatos;
 import com.example.whatsapp.config.Firebase;
@@ -97,9 +98,12 @@ public class ContatosFragment extends Fragment {
 
                                 if ( userA.getEmail().isEmpty() ){
 
+                                    Intent iGrupo = new Intent(requireContext(), GrupoActivity.class);
+                                    startActivity( iGrupo );
+
                                 }else{
                                     Intent i = new Intent(requireContext(), ChatActivity.class);
-                                    i.putExtra("userA", userA);
+                                    i.putExtra("chatContatos", userA);
                                     startActivity( i );
                                 }
                             }
@@ -117,14 +121,6 @@ public class ContatosFragment extends Fragment {
                 )
         );
 
-
-        User user = new User();
-        user.setNome("Novo Grupo");
-        user.setEmail("");
-        listaContatos.add(user);
-
-        recuperarUsers();
-
         return view;
     }
 
@@ -136,6 +132,7 @@ public class ContatosFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        recuperarUsers();
     }
 
     @Override
@@ -150,6 +147,9 @@ public class ContatosFragment extends Fragment {
         .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                listaContatos.clear();
+
                 for (DataSnapshot userFirebase : snapshot.getChildren() ){
 
                     User user = userFirebase.getValue( User.class );
@@ -157,6 +157,14 @@ public class ContatosFragment extends Fragment {
                         listaContatos.add( user );
                     }
                 }
+
+                User user = new User();
+                user.setNome("Novo Grupo");
+                user.setEmail("");
+                listaContatos.add(0,user);
+
+
+
                 adapterContatos.notifyDataSetChanged();
             }
             @Override

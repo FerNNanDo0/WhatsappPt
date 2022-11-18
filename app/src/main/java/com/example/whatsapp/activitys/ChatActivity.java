@@ -1,5 +1,6 @@
 package com.example.whatsapp.activitys;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -26,7 +27,10 @@ import com.example.whatsapp.adapter.AdapterMenssagens;
 import com.example.whatsapp.config.Firebase;
 import com.example.whatsapp.config.UserFirebase;
 import com.example.whatsapp.helper.Base64decod;
+import com.example.whatsapp.helper.Permissions;
 import com.example.whatsapp.model.Conversas;
+import com.example.whatsapp.model.Grupo;
+import com.example.whatsapp.model.MembrosG;
 import com.example.whatsapp.model.Messages;
 import com.example.whatsapp.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -60,8 +64,10 @@ public class ChatActivity extends AppCompatActivity {
     AdapterMenssagens adapterMensagens;
     List<Messages> listMsgs = new ArrayList<>();
 
-    User userDestinatario;
+    User userSelecionado;
+    Grupo grupo;
 
+    Messages msg;
 
     String idUserRemetente;
     String idDestinatario;
@@ -72,6 +78,13 @@ public class ChatActivity extends AppCompatActivity {
     StorageReference storageRef;
 
     ChildEventListener childEventListenerMsg;
+
+
+    // permissions
+    private String[] permissions = new String[]{
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
+    };
 
     @SuppressLint("ResourceType")
     @Override
@@ -96,23 +109,38 @@ public class ChatActivity extends AppCompatActivity {
         // config dados do usuario
         Bundle extra = getIntent().getExtras();
         if ( extra != null ){
-            userDestinatario = (User) extra.getSerializable("userA");
 
-            String urlFotoUser = userDestinatario.getFoto();
-            String nomeUser = userDestinatario.getNome();
+            if( extra.containsKey( "chatG" )){
 
-            //define nome do user atual
-            nome.setText( nomeUser );
+                grupo = (Grupo) extra.getParcelable("chatG");
+                idDestinatario = grupo.getId();
 
-            if (urlFotoUser != null){
-                Glide.with(this).load( urlFotoUser ).into(fotoView);
+                String urlFotoGrupo = grupo.getFoto();
+
+                //define nome do user atual
+                nome.setText( grupo.getNome() );
+
+                if (urlFotoGrupo != null){
+                    Glide.with(this).load( urlFotoGrupo ).into(fotoView);
+                }
+
+            }else{
+                userSelecionado = (User) extra.getParcelable("chatContatos");
+
+                //define nome do user atual
+                nome.setText( userSelecionado.getNome() );
+
+                if ( userSelecionado.getFoto() != null ){
+                    Glide.with(this).load( userSelecionado.getFoto() ).into(fotoView);
+                }
+
+                idDestinatario = Base64decod.encodBase64( userSelecionado.getEmail() );
             }
 
         }
 
         // ids de users
         idUserRemetente = UserFirebase.getIdUser();
-        idDestinatario = Base64decod.encodBase64( userDestinatario.getEmail() );
 
         // referencia do dataBase e storage
         databaseRef = Firebase.getDatabaseRef();
@@ -126,6 +154,9 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView_Msgs.setLayoutManager( layoutManager );
         recyclerView_Msgs.setHasFixedSize( true );
         recyclerView_Msgs.setAdapter(adapterMensagens);
+
+        // validate permissions
+        Permissions.validatePermissions(permissions, this, 1);
 
     }
 
@@ -199,17 +230,25 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
-    public void salvarConversas(Messages msg){
+    public void salvarConversas(String idUserRemetente, String idDestinatario, User userExibicao, Messages msg, boolean isGroup){
+        Conversas conversaRemetente = new Conversas();
 
-        // salvar conversas
-        Conversas conversas = new Conversas();
-        conversas.setIdRemetente( idUserRemetente );
-        conversas.setIdDestinatario( idDestinatario );
-        conversas.setUltimaMenssagen( msg.getMessage() );
-        conversas.setUserExibicao( userDestinatario );
+        // salvar conversas remetente
+        conversaRemetente.setIdRemetente( idUserRemetente );
+        conversaRemetente.setIdDestinatario( idDestinatario );
+        conversaRemetente.setUltimaMenssagen( msg.getMessage() );
 
-        conversas.salvar();
+        if(isGroup){
 
+            conversaRemetente.setIsGroup("true");
+            conversaRemetente.setGrupo( grupo );
+
+        }else{
+            conversaRemetente.setUserExibicao(userExibicao);
+            conversaRemetente.setIsGroup("false");
+        }
+
+        conversaRemetente.salvar();
     }
 
 
@@ -218,21 +257,58 @@ public class ChatActivity extends AppCompatActivity {
     public void sendMessage(View v){
 
         String txt_msg = EditTextMessages.getText().toString();
-        Messages msg;
 
         if ( !txt_msg.isEmpty()){
 
             msg = new Messages();
-            msg.setIdUsuarioAtual( idUserRemetente );
-            msg.setMessage( txt_msg );
 
-            // salvar MSGs para o remetente e destinatario
-            msg.salvarMsgDatabase(idUserRemetente, idDestinatario, msg );
+            if( userSelecionado != null){
 
-            // salvar conversas
-            salvarConversas( msg );
+                msg.setIdUsuarioAtual( idUserRemetente );
+                msg.setMessage( txt_msg );
 
-            EditTextMessages.setText("");
+                // salvar MSGs para o remetente
+                msg.salvarMsgDatabase(idUserRemetente, idDestinatario, msg );
+
+                //   salvar MSGs para o destinatario
+                msg.salvarMsgDatabase(idDestinatario, idUserRemetente, msg );
+
+                // salvar conversas para remetente
+                salvarConversas( idUserRemetente, idDestinatario,  userSelecionado, msg, false );
+
+                // salvar conversas para destinatario
+                User userRemetente = UserFirebase.getDadosUserLogado();
+                salvarConversas( idDestinatario, idUserRemetente,  userRemetente, msg, false );
+
+                EditTextMessages.setText("");
+
+            }else{
+
+                String idUserLogadoGrupo = UserFirebase.getIdUser();
+
+                if( MembrosG.getMembros() != null ){
+
+                    //MembrosG.getMembros()
+                    for ( User membro : MembrosG.getMembros() ){
+
+                        String idRemetenteGrupo = Base64decod.encodBase64( membro.getEmail() );
+
+                        msg.setIdUsuarioAtual( idUserLogadoGrupo );
+                        msg.setMessage( txt_msg );
+                        msg.setNome( membro.getNome() );
+
+                        // salvar msg para o membro do grupo
+                        msg.salvarMsgDatabase(idRemetenteGrupo, idDestinatario, msg );
+
+                        // salvar conversas para membros do grupo
+                        salvarConversas( idRemetenteGrupo, idDestinatario, membro, msg, true);
+
+                        EditTextMessages.setText("");
+                    }
+                }
+
+            }
+
         }else{
             Toast.makeText(getApplicationContext(), "Escreva uma menssagem!",
                     Toast.LENGTH_LONG).show();
@@ -245,6 +321,8 @@ public class ChatActivity extends AppCompatActivity {
     @SuppressLint("NotifyDataSetChanged")
     private void recuperarMensagens(){
 
+        listMsgs.clear();
+
         // referencia menssagens
         mensagensRef = databaseRef.child("mensagens")
                 .child( idUserRemetente )
@@ -253,6 +331,7 @@ public class ChatActivity extends AppCompatActivity {
         childEventListenerMsg = mensagensRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
                 Messages messages = snapshot.getValue( Messages.class );
                 listMsgs.add( messages );
                 adapterMensagens.notifyDataSetChanged();
@@ -260,6 +339,10 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+//                Messages messages = snapshot.getValue( Messages.class );
+//                listMsgs.add( messages );
+                adapterMensagens.notifyDataSetChanged();
 
             }
 

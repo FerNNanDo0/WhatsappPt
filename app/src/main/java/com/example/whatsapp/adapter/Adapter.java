@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.whatsapp.R;
 import com.example.whatsapp.model.Conversas;
+import com.example.whatsapp.model.Grupo;
 import com.example.whatsapp.model.User;
 
 import java.util.List;
@@ -38,6 +39,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
 
+        // lista de contatos
         if( listUsersContatos != null ){
             User user = listUsersContatos.get( position );
 
@@ -58,24 +60,40 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
 
         }
 
+        // lista de conversas
         if( listConversas != null ){
-            Conversas conversas = listConversas.get( position );
 
+            Conversas conversas = listConversas.get( position );
             holder.secondaryText.setText( conversas.getUltimaMenssagen() );
 
-            if ( conversas.getUserExibicao() != null){
+            // verifica se é uma conversa de grupo
+            if( conversas.getIsGroup().equals("true")  ){
 
-                String urlFotoRemetente = conversas.getUserExibicao().getFoto();
+                Grupo grupo = conversas.getGrupo();
+                holder.primaryText.setText( grupo.getNome() );
 
-                holder.primaryText.setText( conversas.getUserExibicao().getNome() );
-
-                if ( urlFotoRemetente != null ){
-                    Uri uri = Uri.parse( urlFotoRemetente );
+                // define foto do grupo
+                if ( grupo.getFoto() != null ){
+                    Uri uri = Uri.parse( grupo.getFoto() );
                     Glide.with( context ).load( uri ).into( holder.img );
+                }else{
+                    holder.img.setImageResource(R.drawable.padrao);
                 }
 
+            }else{
+
+                User user = conversas.getUserExibicao();
+                holder.primaryText.setText( user.getNome() );
+
+                if ( user.getFoto() != null){
+                    Uri uri = Uri.parse( user.getFoto() );
+                    Glide.with( context ).load( uri ).into( holder.img );
+                }else{
+                    holder.img.setImageResource(R.drawable.padrao);
+                }
 
             }
+
         }
 
     }

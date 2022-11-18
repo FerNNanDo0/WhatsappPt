@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.example.whatsapp.R;
 import com.example.whatsapp.activitys.ChatActivity;
 import com.example.whatsapp.adapter.Adapter;
 import com.example.whatsapp.config.Firebase;
+import com.example.whatsapp.config.UserFirebase;
 import com.example.whatsapp.helper.Base64decod;
 import com.example.whatsapp.helper.RecyclerItemClickListener;
 import com.example.whatsapp.model.Conversas;
@@ -30,6 +32,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -47,8 +50,7 @@ public class ConversasFragment extends Fragment {
     private FirebaseUser userAtual;
     private DatabaseReference databaseRef, conversasRef;
 
-    private ValueEventListener eventListener;
-//    private ChildEventListener childEventListener;
+    private ChildEventListener childEventListener;
 
     private List<Conversas> listConversas = new ArrayList<>();
 
@@ -83,11 +85,7 @@ public class ConversasFragment extends Fragment {
         recyclerViewConversas.setAdapter( adapterConversas );
 
         // config e ref de conversas
-        userAtual = Firebase.getAuthRef().getCurrentUser();
-        id = Base64decod.encodBase64(Objects.requireNonNull(userAtual.getEmail()));
-        conversasRef = databaseRef.child("conversas").child( id );
-
-
+        id = UserFirebase.getIdUser();
 
         // config event de click no recyclerView
         recyclerViewConversas.addOnItemTouchListener(
@@ -100,9 +98,19 @@ public class ConversasFragment extends Fragment {
 
                                 Conversas conversaSelecionada = listConversas.get(position);
 
-                                Intent i = new Intent(requireContext(), ChatActivity.class);
-                                i.putExtra("userA", conversaSelecionada.getUserExibicao());
-                                startActivity( i );
+                                if ( conversaSelecionada.getIsGroup().equals("true") ){
+
+                                    Intent i = new Intent(requireContext(), ChatActivity.class);
+                                    i.putExtra( "chatG", conversaSelecionada.getGrupo() );
+                                    startActivity( i );
+
+                                }else{
+
+                                    Intent i = new Intent(requireContext(), ChatActivity.class);
+                                    i.putExtra( "chatContatos", conversaSelecionada.getUserExibicao() );
+                                    startActivity( i );
+                                }
+
                             }
 
                             @Override
@@ -118,7 +126,7 @@ public class ConversasFragment extends Fragment {
                 )
         );
 
-        recuperarConversas();
+        //recuperarConversas();
 
         return view;
     }
@@ -130,21 +138,41 @@ public class ConversasFragment extends Fragment {
     }
 
     public void recuperarConversas(){
+        conversasRef = databaseRef.child("conversas").child( id );
 
-        eventListener = conversasRef
-        .addValueEventListener(new ValueEventListener() {
+        listConversas.clear();
+
+        childEventListener = conversasRef.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for( DataSnapshot conversa : snapshot.getChildren() ){
-                    Conversas conver = conversa.getValue( Conversas.class );
-                    if (conver != null){
-                        listConversas.add( conver );
-                    }
-                }
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                Conversas conver = snapshot.getValue( Conversas.class );
+                listConversas.add( conver );
+
                 adapterConversas.notifyDataSetChanged();
             }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+//                Conversas conver = snapshot.getValue( Conversas.class );
+//                listConversas.add( conver );
+
+                adapterConversas.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
 
@@ -181,11 +209,18 @@ public class ConversasFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        recuperarConversas();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        databaseRef.removeEventListener( eventListener );
+        databaseRef.removeEventListener( childEventListener );
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        databaseRef = null;
     }
 }
